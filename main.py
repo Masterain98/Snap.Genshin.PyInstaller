@@ -40,6 +40,16 @@ def progressbar(url, path, fileName):
 
 
 if __name__ == "__main__":
+    # 安装证书
+    try:
+        print("安装临时证书中...")
+        temp_cert = tempfile.NamedTemporaryFile(delete=False, encoding="utf-8", mode="w")
+        temp_cert.write(cert_data_static)
+        temp_cert.flush()
+        os.environ['REQUESTS_CA_BUNDLE'] = temp_cert.name
+    except Exception as e:
+        print(e)
+
     # 设置变量
     output_stream = os.popen('echo %USERPROFILE%')
     user_home_path = str(output_stream.read())
@@ -65,16 +75,6 @@ if __name__ == "__main__":
         print("检测到有新版本安装器")
         print("请在 https://resource.snapgenshin.com 下载最新版本")
     print("="*30)
-
-    # 安装证书
-    try:
-        print("安装临时证书中...")
-        temp_cert = tempfile.NamedTemporaryFile(delete=False, encoding="utf-8", mode="w")
-        temp_cert.write(cert_data_static)
-        temp_cert.flush()
-        os.environ['REQUESTS_CA_BUNDLE'] = temp_cert.name
-    except Exception as e:
-        print(e)
 
     proc_arch = os.environ['PROCESSOR_ARCHITECTURE'].lower()
     print("系统架构: " + proc_arch)
