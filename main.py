@@ -12,6 +12,7 @@ import requests as requests
 
 from cert_data import cert_data_static
 
+LOCAL_VERSION = "1.1"
 
 def progressbar(url, path, fileName):
     if not os.path.exists(path):  # 看是否有该文件夹，没有则创建文件夹
@@ -44,6 +45,26 @@ if __name__ == "__main__":
     user_home_path = str(output_stream.read())
     user_home_path = user_home_path.replace("\\", "/")
     user_home_path = user_home_path.replace("\n", "/")
+
+    # 设置桌面路径
+    process = subprocess.Popen(["powershell", '[Environment]::GetFolderPath("Desktop")'], stdout=subprocess.PIPE);
+    user_desktop_path = result = process.communicate()[0].decode("utf-8")
+    user_desktop_path = user_desktop_path.replace("\\", "/")
+    user_desktop_path = user_desktop_path.replace("\n", "/")
+    user_desktop_path = user_desktop_path.replace("\r", "")
+    print("桌面目录： " + user_desktop_path)
+
+    # 检查更新
+    remote_version = requests.get('https://api.snapgenshin.com/installer/patch').text.replace('"', '')
+
+    print("="*30)
+    print("Snap Genshin 一键安装器")
+    print("本地安装器版本：" + LOCAL_VERSION)
+    print("最新版：" + remote_version)
+    if float(remote_version) > float(LOCAL_VERSION):
+        print("检测到有新版本安装器")
+        print("请在 https://resource.snapgenshin.com 下载最新版本")
+    print("="*30)
 
     # 安装证书
     try:
@@ -93,8 +114,8 @@ if __name__ == "__main__":
                 print("未检测到 WebView2 Runtime 环境")
         if not findWebView:
             webView2_url = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"
-            progressbar(webView2_url, user_home_path, "webview2.exe")
-            webview2_installer_path = user_home_path + "webview2.exe"
+            progressbar(webView2_url, user_desktop_path, "webview2.exe")
+            webview2_installer_path = user_desktop_path + "webview2.exe"
             install_result = str(os.system(webview2_installer_path + " /silent /install"))
             if install_result == "3010":
                 print("安装成功")
@@ -129,8 +150,8 @@ if __name__ == "__main__":
             print(required_version + " 已安装")
         else:
             print(required_version + " 需要被安装")
-            progressbar(dotNet_required_url, user_home_path, "dotnet.exe")
-            installer_path = user_home_path + "dotnet.exe"
+            progressbar(dotNet_required_url, user_desktop_path, "dotnet.exe")
+            installer_path = user_desktop_path + "dotnet.exe"
             install_result = str(os.system(installer_path + " /install /quiet /norestart"))
             if install_result == "3010":
                 print("安装成功")
@@ -150,12 +171,6 @@ if __name__ == "__main__":
         patch_info = json.loads(r.text)
         print("当前版本：" + patch_info["tag_name"])
 
-        process = subprocess.Popen(["powershell", '[Environment]::GetFolderPath("Desktop")'], stdout=subprocess.PIPE);
-        user_desktop_path = result = process.communicate()[0].decode("utf-8")
-        user_desktop_path = user_desktop_path.replace("\\", "/")
-        user_desktop_path = user_desktop_path.replace("\n", "/")
-        user_desktop_path = user_desktop_path.replace("\r", "")
-        print("桌面目录： " + user_desktop_path)
         progressbar(patch_info["browser_download_url"], user_desktop_path, "SnapGenshin-installer.zip")
         with zipfile.ZipFile(user_desktop_path + "/SnapGenshin-installer.zip", "r") as zip_ref:
             zip_ref.extractall(user_desktop_path + "/SnapGenshin/")
