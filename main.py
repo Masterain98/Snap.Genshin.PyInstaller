@@ -12,7 +12,7 @@ import requests as requests
 
 from cert_data import cert_data_static
 
-LOCAL_VERSION = "1.1"
+LOCAL_VERSION = "1.2"
 has_req = False
 
 def progressbar(url, path, fileName):
