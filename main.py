@@ -13,6 +13,7 @@ import requests as requests
 from cert_data import cert_data_static
 
 LOCAL_VERSION = "1.1"
+has_req = False
 
 def progressbar(url, path, fileName):
     if not os.path.exists(path):  # 看是否有该文件夹，没有则创建文件夹
@@ -66,6 +67,7 @@ if __name__ == "__main__":
 
     # 检查更新
     remote_version = requests.get('https://api.snapgenshin.com/installer/patch').text.replace('"', '')
+    proc_arch = os.environ['PROCESSOR_ARCHITECTURE'].lower()
 
     print("="*30)
     print("Snap Genshin 一键安装器")
@@ -74,10 +76,15 @@ if __name__ == "__main__":
     if float(remote_version) > float(LOCAL_VERSION):
         print("检测到有新版本安装器")
         print("请在 https://resource.snapgenshin.com 下载最新版本")
-    print("="*30)
-
-    proc_arch = os.environ['PROCESSOR_ARCHITECTURE'].lower()
     print("系统架构: " + proc_arch)
+    print("="*30)
+    print("请选择你需要执行的功能：")
+    print("1. 自动安装所需系统环境")
+    print("2. 自动安装系统环境和最新版 Snap Genshin 客户端")
+    while not has_req:
+        user_req = input("输入序号以执行：")
+        if user_req == "1" or user_req == "2":
+            has_req = True
 
     print("\n[检查 WebView2 Runtime 环境]")
     local_64bit = r"SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
@@ -128,7 +135,7 @@ if __name__ == "__main__":
                 print("删除文件失败")
                 print("Expected file: " + webview2_installer_path)
         else:
-            print("WebView2 Runtime 版本：" + pv_value)
+            print("WebView2 Runtime 本地版本：" + pv_value)
     except Exception as e:
         print("检测 WebView2 Runtime 环境时发生错误")
         input(e)
@@ -165,17 +172,20 @@ if __name__ == "__main__":
         print("检测 dotNet Runtime 环境时发生错误")
         input(e)
 
-    try:
-        print("\n[开始下载 Snap Genshin]")
-        r = requests.get('https://patch.snapgenshin.com/getPatch')
-        patch_info = json.loads(r.text)
-        print("当前版本：" + patch_info["tag_name"])
+    if user_req == "2":
+        try:
+            print("\n[开始下载 Snap Genshin]")
+            r = requests.get('https://patch.snapgenshin.com/getPatch')
+            patch_info = json.loads(r.text)
+            print("当前版本：" + patch_info["tag_name"])
 
-        progressbar(patch_info["browser_download_url"], user_desktop_path, "SnapGenshin-installer.zip")
-        with zipfile.ZipFile(user_desktop_path + "/SnapGenshin-installer.zip", "r") as zip_ref:
-            zip_ref.extractall(user_desktop_path + "/SnapGenshin/")
-        print("Snap Genshin 已存放于桌面 SnapGenshin 文件夹")
-        input("\n安装完成，按任意键退出本程序")
-    except Exception as e:
-        print("程序意外中断")
-        input(e)
+            progressbar(patch_info["browser_download_url"], user_desktop_path, "SnapGenshin-installer.zip")
+            with zipfile.ZipFile(user_desktop_path + "/SnapGenshin-installer.zip", "r") as zip_ref:
+                zip_ref.extractall(user_desktop_path + "/SnapGenshin/")
+            print("Snap Genshin 已存放于桌面 SnapGenshin 文件夹")
+            input("\n安装完成，按回车键退出本程序")
+        except Exception as e:
+            print("程序意外中断")
+            input(e)
+    else:
+        input("\n安装完成，按回车键退出本程序")
