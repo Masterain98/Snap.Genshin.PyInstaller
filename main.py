@@ -12,11 +12,11 @@ import requests as requests
 
 from cert_data import cert_data_static
 
-LOCAL_VERSION = "1.2"
+LOCAL_VERSION = "1.3"
 has_req = False
 
 
-def progressbar(url, path, fileName):
+def progressbar(url, path, file_name):
     if not os.path.exists(path):  # 看是否有该文件夹，没有则创建文件夹
         os.mkdir(path)
     start = time.time()  # 下载开始时间
@@ -28,7 +28,7 @@ def progressbar(url, path, fileName):
         if response.status_code == 200:  # 判断是否响应成功
             print('开始下载，文件大小：{size:.2f} MB'.format(
                 size=content_size / chunk_size / 1024))  # 开始下载，显示下载文件大小
-            filepath = path + fileName
+            filepath = path + file_name
             with open(filepath, 'wb') as file:  # 显示进度条
                 for data in response.iter_content(chunk_size=chunk_size):
                     file.write(data)
@@ -37,8 +37,8 @@ def progressbar(url, path, fileName):
                         '>' * int(size * 50 / content_size), float(size / content_size * 100)), end=' ')
         end = time.time()  # 下载结束时间
         print('下载完成\n用时: %.2f秒' % (end - start))  # 输出下载用时时间
-    except Exception as e:
-        print(e)
+    except Exception as progress_bar_error:
+        print(progress_bar_error)
 
 
 if __name__ == "__main__":
@@ -77,7 +77,7 @@ if __name__ == "__main__":
                     print("trying cp1252")
                     user_desktop_path = process_result.decode("cp1252")
                 except UnicodeDecodeError:
-                    raise UnicodeDecodeError("Ps解码失败，请在系统语言设置中启用UTF-8编码支持")
+                    raise UnicodeDecodeError(__reason="Ps解码失败，请在系统语言设置中启用UTF-8编码支持")
     user_desktop_path = user_desktop_path.replace("\\", "/")
     user_desktop_path = user_desktop_path.replace("\n", "/")
     user_desktop_path = user_desktop_path.replace("\r", "")
@@ -136,6 +136,7 @@ if __name__ == "__main__":
                 pv_value = winreg.QueryValueEx(key, "pv")[0]
                 findWebView = True
             except FileNotFoundError:
+                pv_value = "None"
                 print("未检测到 WebView2 Runtime 环境")
         if not findWebView:
             webView2_url = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"
@@ -149,7 +150,7 @@ if __name__ == "__main__":
             try:
                 os.remove(webview2_installer_path)
                 print("删除安装文件成功")
-            except:
+            except OSError:
                 print("删除文件失败")
                 print("Expected file: " + webview2_installer_path)
         else:
@@ -169,7 +170,7 @@ if __name__ == "__main__":
         m = re.search(required_version, output)
         try:
             dotNetLookupResult = m.group()
-        except:
+        except TypeError:
             dotNetLookupResult = None
         if dotNetLookupResult is not None:
             print(required_version + " 已安装")
@@ -183,7 +184,7 @@ if __name__ == "__main__":
             try:
                 os.remove(installer_path)
                 print("删除安装文件成功")
-            except:
+            except OSError:
                 print("删除文件失败")
                 print("Expected file: " + installer_path)
     except Exception as e:
