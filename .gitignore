@@ -3,3 +3,6 @@ __pycache__
 build
 dist
 main.spec
+file_version_info.txt
+package.bat
+sign.ps1

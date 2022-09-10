@@ -15,6 +15,7 @@ from cert_data import cert_data_static
 LOCAL_VERSION = "1.2"
 has_req = False
 
+
 def progressbar(url, path, fileName):
     if not os.path.exists(path):  # 看是否有该文件夹，没有则创建文件夹
         os.mkdir(path)
@@ -43,11 +44,11 @@ def progressbar(url, path, fileName):
 if __name__ == "__main__":
     # 安装证书
     try:
-        print("安装临时证书中...")
         temp_cert = tempfile.NamedTemporaryFile(delete=False, encoding="utf-8", mode="w")
         temp_cert.write(cert_data_static)
         temp_cert.flush()
         os.environ['REQUESTS_CA_BUNDLE'] = temp_cert.name
+        print("临时证书安装成功")
     except Exception as e:
         print(e)
 
@@ -59,7 +60,24 @@ if __name__ == "__main__":
 
     # 设置桌面路径
     process = subprocess.Popen(["powershell", '[Environment]::GetFolderPath("Desktop")'], stdout=subprocess.PIPE);
-    user_desktop_path = result = process.communicate()[0].decode("utf-8")
+    process_result = process.communicate()[0]
+    try:
+        print("trying utf-8")
+        user_desktop_path = process_result.decode("utf-8")
+    except UnicodeDecodeError:
+        try:
+            print("trying GB2312")
+            user_desktop_path = process_result.decode("gb2312")
+        except UnicodeDecodeError:
+            try:
+                print("trying GBK")
+                user_desktop_path = process_result.decode("GBK")
+            except UnicodeDecodeError:
+                try:
+                    print("trying cp1252")
+                    user_desktop_path = process_result.decode("cp1252")
+                except UnicodeDecodeError:
+                    raise UnicodeDecodeError("Ps解码失败，请在系统语言设置中启用UTF-8编码支持")
     user_desktop_path = user_desktop_path.replace("\\", "/")
     user_desktop_path = user_desktop_path.replace("\n", "/")
     user_desktop_path = user_desktop_path.replace("\r", "")
@@ -69,7 +87,7 @@ if __name__ == "__main__":
     remote_version = requests.get('https://api.snapgenshin.com/installer/patch').text.replace('"', '')
     proc_arch = os.environ['PROCESSOR_ARCHITECTURE'].lower()
 
-    print("="*30)
+    print("=" * 30)
     print("Snap Genshin 一键安装器")
     print("本地安装器版本：" + LOCAL_VERSION)
     print("最新版：" + remote_version)
@@ -77,7 +95,7 @@ if __name__ == "__main__":
         print("检测到有新版本安装器")
         print("请在 https://resource.snapgenshin.com 下载最新版本")
     print("系统架构: " + proc_arch)
-    print("="*30)
+    print("=" * 30)
     print("请选择你需要执行的功能：")
     print("1. 自动安装所需系统环境")
     print("2. 自动安装系统环境和最新版 Snap Genshin 客户端")
