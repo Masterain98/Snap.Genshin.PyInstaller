@@ -12,7 +12,7 @@ import requests as requests
 
 from cert_data import cert_data_static
 
-LOCAL_VERSION = "1.3"
+LOCAL_VERSION = "1.4"
 has_req = False
 
 
@@ -171,6 +171,8 @@ if __name__ == "__main__":
         try:
             dotNetLookupResult = m.group()
         except TypeError:
+            dotNetLookupResult = None
+        except AttributeError:
             dotNetLookupResult = None
         if dotNetLookupResult is not None:
             print(required_version + " 已安装")
